@@ -6,4 +6,4 @@ supabase==2.7.4
 python-dotenv==1.0.1
 pydantic==2.11.3
 pypdf==4.2.0
-httpx==0.25.2
+httpx==0.24.1
