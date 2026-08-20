@@ -10,7 +10,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",         # local dev
-        "https://your-app.lovable.app",  # replace with your actual Lovable URL
+        "https://magic-remake.lovable.app",  # replace with your actual Lovable URL
     ],
     allow_credentials=True,
     allow_methods=["*"],
