@@ -4,6 +4,9 @@ import anthropic
 import voyageai
 from supabase import create_client
 
+import logging
+logging.basicConfig(level=logging.ERROR)
+
 load_dotenv()
 
 claude   = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
@@ -52,19 +55,19 @@ def build_context(passages: list) -> str:
         context += "\n"
     return context
 
-
 def ask(question: str) -> dict:
-    passages = search_documents(question)
-    context  = build_context(passages)
+    try:
+        passages = search_documents(question)
+        context  = build_context(passages)
 
-    response = claude.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=700,
-        system=SYSTEM_PROMPT,
-        messages=[
-            {
-                "role": "user",
-                "content": f"""Here are the relevant source passages to answer the question:
+        response = claude.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=700,
+            system=SYSTEM_PROMPT,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"""Here are the relevant source passages to answer the question:
 
 {context}
 
@@ -73,16 +76,23 @@ def ask(question: str) -> dict:
 Question: {question}
 
 Please answer based on the sources above."""
-            }
+                }
+            ]
+        )
+
+        answer = response.content[0].text
+
+        sources_used = [
+            {"title": p["source_title"], "url": p.get("source_url", "")}
+            for p in passages
+            if p.get("similarity", 0) > 0.3
         ]
-    )
 
-    answer = response.content[0].text
+        return {"answer": answer, "sources": sources_used}
+    except Exception as e:
+        logging.exception("Error in ask()")
+        raise
 
-    sources_used = [
-        {"title": p["source_title"], "url": p.get("source_url", "")}
-        for p in passages
-        if p.get("similarity", 0) > 0.3
-    ]
 
-    return {"answer": answer, "sources": sources_used}
+
+
